@@ -56,24 +56,43 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let selectedParent = treeObject.findElement(withIndex: indexPath.row) {
             tableView.beginUpdates()
+            
+            //Open node
             if !selectedParent.isActive {
                 var increment = indexPath.row + 1
                 for child in selectedParent.children {
-                    
                     arrayOfCells.insert(child, at: increment)
                     tableView.insertRows(at: [IndexPath.init(row: increment, section: 0)], with: .automatic)
-                    
                     increment += 1
                 }
                 selectedParent.setActive()
                 for child in selectedParent.children {
                     child.setHidden()
                 }
+            }
+            
+            //Hide node
+            else {
+                let toDelete = selectedParent.numberOfObjectsBelowLine()
                 
-            } else {
-                
+                for i in 1...toDelete {
+                    arrayOfCells.remove(at: indexPath.row + 1)
+                    tableView.deleteRows(at: [IndexPath.init(row: indexPath.row + i, section: 0)], with: .automatic)
+                }
+                selectedParent.setActive()
+                hideAndDeactivateChildren(of: selectedParent)
             }
             tableView.endUpdates()
+        }
+    }
+    
+    func hideAndDeactivateChildren(of parent: TreeObject) {
+        for child in parent.children {
+            if child.isActive {
+                child.setActive()
+                hideAndDeactivateChildren(of: child)
+            }
+            child.setHidden()
         }
     }
     
