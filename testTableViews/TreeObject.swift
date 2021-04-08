@@ -14,19 +14,17 @@ class TreeObject {
     
     var pNum: Int
     var title: String
-    let isCollection: Bool = Bool.random()
+    var isHidden: Bool = true
+    var isActive: Bool = false
     
     init(num: Int) {
         pNum = num
         title = "\(pNum): " + UUID().uuidString
     }
     
-    var isHidden: Bool = true
-    var isActive: Bool = false
-    
     private func createChildren() -> [TreeObject] {
         var newArray: [TreeObject] = []
-        let numberOfElements = Int.random(in: 2...5)
+        let numberOfElements = Int.random(in: 0...4)
         
         if numberOfElements != 0 {
             for _ in 0..<numberOfElements {

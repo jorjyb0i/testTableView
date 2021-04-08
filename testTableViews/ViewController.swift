@@ -11,25 +11,18 @@ class ViewController: UIViewController {
 
     let tableView = UITableView()
     let identifier = "mainTable"
-    
-    var numberOfRowsBelowTheLne = 0
-    
     let treeObject = TreeObject(num: 0)
     var arrayOfCells: [TreeObject] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        treeObject.setActive()
-        treeObject.setHidden()
-        for child in treeObject.children {
-            child.setHidden()
-        }
-        
         arrayOfCells = treeObject.children
-        
         setupTableView(table: tableView, identifier: identifier)
-        activateConstraints()
+    }
+    
+    override func viewWillLayoutSubviews() {
+            super.viewWillLayoutSubviews()
+            tableView.frame = view.bounds
     }
     
     func setupTableView(table: UITableView, identifier: String) {
@@ -38,15 +31,26 @@ class ViewController: UIViewController {
         table.delegate = self
         table.dataSource = self
         table.register(UITableViewCell.self, forCellReuseIdentifier: identifier)
+        
+        treeObject.setActive()
+        treeObject.setHidden()
+        showChildren(of: treeObject)
     }
     
-    func activateConstraints() {
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+    func showChildren(of parent: TreeObject) {
+        for child in parent.children {
+            child.setHidden()
+        }
+    }
+    
+    func hideAndDeactivateChildren(of parent: TreeObject) {
+        for child in parent.children {
+            if child.isActive {
+                child.setActive()
+                hideAndDeactivateChildren(of: child)
+            }
+            child.setHidden()
+        }
     }
 }
 
@@ -66,33 +70,22 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
                     increment += 1
                 }
                 selectedParent.setActive()
-                for child in selectedParent.children {
-                    child.setHidden()
-                }
+                showChildren(of: selectedParent)
             }
             
             //Hide node
             else {
                 let toDelete = selectedParent.numberOfObjectsBelowLine()
-                
-                for i in 1...toDelete {
-                    arrayOfCells.remove(at: indexPath.row + 1)
-                    tableView.deleteRows(at: [IndexPath.init(row: indexPath.row + i, section: 0)], with: .automatic)
+                if toDelete > 0 {
+                    for i in 1...toDelete {
+                        arrayOfCells.remove(at: indexPath.row + 1)
+                        tableView.deleteRows(at: [IndexPath.init(row: indexPath.row + i, section: 0)], with: .automatic)
+                    }
                 }
                 selectedParent.setActive()
                 hideAndDeactivateChildren(of: selectedParent)
             }
             tableView.endUpdates()
-        }
-    }
-    
-    func hideAndDeactivateChildren(of parent: TreeObject) {
-        for child in parent.children {
-            if child.isActive {
-                child.setActive()
-                hideAndDeactivateChildren(of: child)
-            }
-            child.setHidden()
         }
     }
     
